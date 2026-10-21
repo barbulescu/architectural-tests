@@ -1,0 +1,6 @@
+package com.example.shop.domain
+
+class LegacyCart {
+    @Suppress("konsist.domain objects are immutable")
+    var items: MutableList<OrderLine> = mutableListOf()
+}

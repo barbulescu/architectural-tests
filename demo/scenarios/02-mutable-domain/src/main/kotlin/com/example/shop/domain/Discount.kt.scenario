@@ -1,0 +1,5 @@
+package com.example.shop.domain
+
+data class Discount(val code: String, var percent: Int) {
+    fun applyTo(price: Money): Money = Money(price.amount * (100 - percent).toBigDecimal() / 100.toBigDecimal())
+}
