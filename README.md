@@ -1,7 +1,7 @@
 # Architecture tests with ArchUnit and Konsist
 
-A small code base, mostly Java with a Kotlin domain model (roughly the 80/20 split of a typical
-JVM shop), used to demo architecture tests to a skeptical audience.
+A small code base, mostly Java with a Kotlin domain model, used to demo architecture tests
+to a skeptical audience.
 Everything is a plain JUnit test in a standard Maven build: `./mvnw test` is the only command anyone needs.
 Requires JDK 21+; the Maven wrapper downloads Maven itself.
 
