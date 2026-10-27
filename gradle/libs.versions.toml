@@ -1,0 +1,18 @@
+[versions]
+kotlin = "2.4.21"
+junit = "5.14.4"
+archunit = "1.5.1"
+konsist = "0.18.1"
+detekt = "1.23.8"
+
+[libraries]
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+archunit = { module = "com.tngtech.archunit:archunit", version.ref = "archunit" }
+konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
+detekt-api = { module = "io.gitlab.arturbosch.detekt:detekt-api", version.ref = "detekt" }
+detekt-test = { module = "io.gitlab.arturbosch.detekt:detekt-test", version.ref = "detekt" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

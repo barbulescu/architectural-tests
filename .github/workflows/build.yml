@@ -1,0 +1,54 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  libraries:
+    name: Libraries (Gradle)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v6
+      - run: ./gradlew build
+
+  example-maven:
+    name: Example shop-maven
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/shop-maven
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+          cache-dependency-path: examples/shop-maven/pom.xml
+      - run: ./mvnw --batch-mode test
+
+  example-gradle:
+    name: Example shop-gradle
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/shop-gradle
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v6
+      - run: ./gradlew build
