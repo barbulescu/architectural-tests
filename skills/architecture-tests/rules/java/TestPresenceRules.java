@@ -20,11 +20,15 @@ public final class TestPresenceRules {
     }
 
     /**
+     * Top-level classes in {@code <rootPackage>.<subPackage>} (or its sub-packages; {@code ""} for the whole root
+     * package) whose name ends with {@code simpleNameSuffix} have a test class.
+     *
      * @param productionAndTestClasses classes imported WITHOUT {@code DO_NOT_INCLUDE_TESTS}: the rule needs both sides.
      *                                 Check the rule against the same classes.
      */
     public static ArchRule classesHaveATestClass(
-            String packagePattern, String simpleNameSuffix, JavaClasses productionAndTestClasses) {
+            String rootPackage, String subPackage, String simpleNameSuffix, JavaClasses productionAndTestClasses) {
+        String packagePattern = subPackage.isEmpty() ? rootPackage + ".." : rootPackage + "." + subPackage + "..";
         return classes().that().resideInAPackage(packagePattern).and().haveSimpleNameEndingWith(simpleNameSuffix)
                 .and().areTopLevelClasses()
                 .should(haveATestClassIn(productionAndTestClasses));

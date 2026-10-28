@@ -14,15 +14,16 @@ import org.junit.jupiter.api.Test
  */
 class KotlinArchitectureTest {
 
+    private val rootPackage = "com.example.shop"
     private val production = Konsist.scopeFromProduction()
 
     @Test
     fun `domain objects are immutable`() {
-        ImmutabilityRules.assertImmutable(production, "com.example.shop.domain..")
+        ImmutabilityRules.assertImmutable(production, rootPackage, "domain")
     }
 
     @Test
     fun `domain does not know about frameworks`() {
-        FrameworkFreeRules.assertNoImports(production, "com.example.shop.domain..")
+        FrameworkFreeRules.assertNoImports(production, rootPackage, "domain")
     }
 }

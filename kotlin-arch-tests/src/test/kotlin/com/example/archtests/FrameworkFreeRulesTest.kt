@@ -9,14 +9,14 @@ import kotlin.test.assertFalse
 class FrameworkFreeRulesTest {
 
     @Test
-    fun `plain JDK imports pass`() {
-        FrameworkFreeRules.assertNoImports(Fixtures.scope("kotlin-framework-free", "valid"), "fixtures.domain..")
+    fun `plain JDK imports, and anything outside the root package, pass`() {
+        FrameworkFreeRules.assertNoImports(Fixtures.scope("kotlin-framework-free", "valid"), "fixtures", "domain")
     }
 
     @Test
     fun `framework imports fail, outside the package they are fine`() {
         val failure = assertThrows<KoAssertionFailedException> {
-            FrameworkFreeRules.assertNoImports(Fixtures.scope("kotlin-framework-free", "invalid"), "fixtures.domain..")
+            FrameworkFreeRules.assertNoImports(Fixtures.scope("kotlin-framework-free", "invalid"), "fixtures", "domain")
         }
         val message = failure.message.orEmpty()
         assertContains(message, "was violated (2 times)")

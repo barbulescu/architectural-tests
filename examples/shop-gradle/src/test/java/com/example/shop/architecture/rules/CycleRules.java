@@ -11,8 +11,8 @@ public final class CycleRules {
     private CycleRules() {
     }
 
-    /** Each direct sub-package of {@code basePackage} (with everything below it) is one slice. */
-    public static ArchRule noCyclesBetweenTopLevelPackages(String basePackage) {
-        return slices().matching(basePackage + ".(*)..").should().beFreeOfCycles();
+    /** Each direct sub-package of {@code rootPackage} (with everything below it) is one slice. */
+    public static ArchRule noCyclesBetweenTopLevelPackages(String rootPackage) {
+        return slices().matching(rootPackage + ".(*)..").should().beFreeOfCycles();
     }
 }

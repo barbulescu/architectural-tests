@@ -6,18 +6,26 @@ import org.junit.jupiter.api.Test;
 import static com.example.archtests.Fixtures.assertPasses;
 import static com.example.archtests.Fixtures.assertViolates;
 import static com.example.archtests.Fixtures.classes;
+import static com.example.archtests.Fixtures.pkg;
 
 class NamingRulesTest {
 
-    private static final ArchRule RULE = NamingRules.classesWithSuffixResideIn("Controller", "..web..");
+    private static ArchRule rule(String rootPackage) {
+        return NamingRules.classesWithSuffixResideIn(rootPackage, "Controller", "web");
+    }
 
     @Test
     void controller_in_web_passes() {
-        assertPasses(RULE, classes("naming", "valid"));
+        assertPasses(rule(pkg("naming", "valid")), classes("naming", "valid"));
     }
 
     @Test
     void controller_elsewhere_fails() {
-        assertViolates(RULE, classes("naming", "invalid"), "naming.invalid.service.OrderController");
+        assertViolates(rule(pkg("naming", "invalid")), classes("naming", "invalid"), "naming.invalid.service.OrderController");
+    }
+
+    @Test
+    void classes_outside_the_root_package_are_ignored() {
+        assertPasses(rule(pkg("naming", "valid")), classes("naming"));
     }
 }

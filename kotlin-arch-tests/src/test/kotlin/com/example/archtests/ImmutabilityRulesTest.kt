@@ -8,14 +8,14 @@ import kotlin.test.assertContains
 class ImmutabilityRulesTest {
 
     @Test
-    fun `val properties of immutable types pass`() {
-        ImmutabilityRules.assertImmutable(Fixtures.scope("kotlin-immutability", "valid"), "fixtures.domain..")
+    fun `val properties of immutable types, and anything outside the root package, pass`() {
+        ImmutabilityRules.assertImmutable(Fixtures.scope("kotlin-immutability", "valid"), "fixtures", "domain")
     }
 
     @Test
     fun `var and mutable collections fail`() {
         val failure = assertThrows<KoAssertionFailedException> {
-            ImmutabilityRules.assertImmutable(Fixtures.scope("kotlin-immutability", "invalid"), "fixtures.domain..")
+            ImmutabilityRules.assertImmutable(Fixtures.scope("kotlin-immutability", "invalid"), "fixtures", "domain")
         }
         val message = failure.message.orEmpty()
         assertContains(message, "Assert 'var and mutable collections fail' was violated (6 times)")
@@ -24,6 +24,6 @@ class ImmutabilityRulesTest {
 
     @Test
     fun `existing offenders can be suppressed`() {
-        ImmutabilityRules.assertImmutable(Fixtures.scope("kotlin-immutability", "suppressed"), "fixtures.domain..")
+        ImmutabilityRules.assertImmutable(Fixtures.scope("kotlin-immutability", "suppressed"), "fixtures", "domain")
     }
 }

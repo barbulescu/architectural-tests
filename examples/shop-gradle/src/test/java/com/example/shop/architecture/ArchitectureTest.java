@@ -21,46 +21,46 @@ import static com.tngtech.archunit.library.freeze.FreezingArchRule.freeze;
  */
 class ArchitectureTest {
 
-    private static final String BASE_PACKAGE = "com.example.shop";
+    private static final String ROOT_PACKAGE = "com.example.shop";
 
     private static final JavaClasses PRODUCTION = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages(BASE_PACKAGE);
+            .importPackages(ROOT_PACKAGE);
 
-    private static final JavaClasses PRODUCTION_AND_TESTS = new ClassFileImporter().importPackages(BASE_PACKAGE);
+    private static final JavaClasses PRODUCTION_AND_TESTS = new ClassFileImporter().importPackages(ROOT_PACKAGE);
 
     @Test
     void layers_are_respected() {
         // freeze(): violations that already exist are recorded in archunit_store/ and tolerated;
         // any NEW violation fails the build. Fixed violations are removed from the store automatically.
         freeze(LayeredArchitectureRules.webApplicationDomainInfrastructure(
-                "..web..", "..application..", "..domain..", "..infrastructure.."))
+                ROOT_PACKAGE, "web", "application", "domain", "infrastructure"))
                 .check(PRODUCTION);
     }
 
     @Test
     void no_package_cycles() {
-        CycleRules.noCyclesBetweenTopLevelPackages(BASE_PACKAGE).check(PRODUCTION);
+        CycleRules.noCyclesBetweenTopLevelPackages(ROOT_PACKAGE).check(PRODUCTION);
     }
 
     @Test
     void no_printing_to_the_console() {
-        CodingRules.noStandardStreams().check(PRODUCTION);
+        CodingRules.noStandardStreams(ROOT_PACKAGE).check(PRODUCTION);
     }
 
     @Test
     void no_java_util_logging() {
-        CodingRules.noJavaUtilLogging().check(PRODUCTION);
+        CodingRules.noJavaUtilLogging(ROOT_PACKAGE).check(PRODUCTION);
     }
 
     @Test
     void controllers_live_in_the_web_package() {
-        NamingRules.classesWithSuffixResideIn("Controller", "..web..").check(PRODUCTION);
+        NamingRules.classesWithSuffixResideIn(ROOT_PACKAGE, "Controller", "web").check(PRODUCTION);
     }
 
     @Test
     void every_use_case_has_a_test() {
-        TestPresenceRules.classesHaveATestClass("..application..", "UseCase", PRODUCTION_AND_TESTS)
+        TestPresenceRules.classesHaveATestClass(ROOT_PACKAGE, "application", "UseCase", PRODUCTION_AND_TESTS)
                 .check(PRODUCTION_AND_TESTS);
     }
 }

@@ -11,8 +11,16 @@ public final class NamingRules {
     private NamingRules() {
     }
 
-    public static ArchRule classesWithSuffixResideIn(String simpleNameSuffix, String packagePattern) {
-        return classes().that().haveSimpleNameEndingWith(simpleNameSuffix)
-                .should().resideInAPackage(packagePattern);
+    /**
+     * Classes below {@code rootPackage} whose name ends with {@code simpleNameSuffix} reside in
+     * {@code <rootPackage>.<subPackage>} or its sub-packages.
+     */
+    public static ArchRule classesWithSuffixResideIn(String rootPackage, String simpleNameSuffix, String subPackage) {
+        return classes().that().resideInAPackage(rootPackage + "..").and().haveSimpleNameEndingWith(simpleNameSuffix)
+                .should().resideInAPackage(inside(rootPackage, subPackage));
+    }
+
+    private static String inside(String rootPackage, String subPackage) {
+        return subPackage.isEmpty() ? rootPackage + ".." : rootPackage + "." + subPackage + "..";
     }
 }

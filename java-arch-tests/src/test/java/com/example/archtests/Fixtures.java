@@ -20,6 +20,11 @@ final class Fixtures {
         return ROOT + "." + group + "." + variant;
     }
 
+    /** Both variants: for checking that a rule rooted at one variant ignores the other. */
+    static JavaClasses classes(String group) {
+        return new ClassFileImporter().importPackages(ROOT + "." + group);
+    }
+
     static JavaClasses classes(String group, String variant) {
         return new ClassFileImporter().importPackages(pkg(group, variant));
     }

@@ -33,7 +33,7 @@ ArchUnit is the main tool: it covers all of the code. Konsist is the add-on for 
 
 The rules themselves are in `src/test/{java,kotlin}/com/example/shop/architecture/rules/`, copied from this repo's
 rule catalog by the [`architecture-tests` skill](../skills/architecture-tests/SKILL.md). The two test classes only
-apply them to this project's packages.
+apply them to this project's root package `com.example.shop`; every rule checks that package and its sub-packages.
 
 ## Adopting on an existing code base
 

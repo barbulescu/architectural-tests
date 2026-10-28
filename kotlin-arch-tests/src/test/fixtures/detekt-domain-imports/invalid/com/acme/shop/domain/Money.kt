@@ -1,6 +1,6 @@
-package com.acme.domain
+package com.acme.shop.domain
 
-import com.acme.infrastructure.MoneyTable
+import com.acme.shop.infrastructure.MoneyTable
 import org.springframework.stereotype.Component
 
 @Component

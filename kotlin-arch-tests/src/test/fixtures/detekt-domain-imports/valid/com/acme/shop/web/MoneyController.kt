@@ -1,6 +1,6 @@
-package com.acme.web
+package com.acme.shop.web
 
-import com.acme.domain.Money
+import com.acme.shop.domain.Money
 import org.springframework.web.bind.annotation.RestController
 
 @RestController

@@ -29,8 +29,10 @@ Find out, by reading files (do not guess):
 - **Test framework**: the rules need JUnit 5 (Jupiter). With only JUnit 4, tell the user and offer to add
   `junit-jupiter` plus `junit-vintage-engine` so existing tests keep running. Stop if they decline.
 - **Java version**: ArchUnit 1.5 needs Java 8+, Konsist needs Kotlin/JVM 11+. Note the version for the snippets.
-- **Base package**: the longest package prefix shared by all production classes, e.g. `com.acme.shop`.
-- **Top-level sub-packages** of the base package and what they suggest:
+- **Root package**: the longest package prefix shared by all production classes, e.g. `com.acme.shop`. Every rule
+  is applied to this package and its sub-packages only. If the user wants the rules for part of the code base only
+  (one bounded context, one module's packages), use that package as the root.
+- **Top-level sub-packages** of the root package and what they suggest:
   - `web`/`api`/`rest`/`controller`, `application`/`usecase`/`service`, `domain`/`model`, `infrastructure`/`persistence` → **layered**
   - `adapter(s)`, `port(s)`, `domain` (often `domain.model`, `domain.service`) → **hexagonal**
   - feature packages (`order`, `customer`, …) → neither; recommend `cycles` and `coding`, and ask about layering inside features.
@@ -52,20 +54,22 @@ Ask the user to confirm or change the selection.
 
 ## 3. Parameters
 
-For each selected rule, propose concrete values inferred in step 1 (layer packages, the suffix and package for
-`test-presence`, forbidden import prefixes) and ask the user to confirm them in one round. Use ArchUnit package
-syntax (`..web..` or `com.acme.shop.web..`) for Java rules and Konsist syntax (`com.acme.shop.domain..`) for Kotlin rules.
+Propose the root package and, for each selected rule, concrete values inferred in step 1 (layer packages, the suffix
+and package for `test-presence`, forbidden import prefixes), and ask the user to confirm them in one round.
+Every rule takes the root package first; all other packages are **relative to it** and include their sub-packages:
+`"web"` for `com.acme.shop.web..`, `"domain.model"` for `com.acme.shop.domain.model..`, `""` for the root itself.
+Do not pass ArchUnit (`..web..`) or Konsist (`com.acme.shop.web..`) patterns.
 
 ## 4. Copy the rule files
 
 For each selected rule group, copy its file from `rules/`:
 
-- Java: `rules/java/<File>.java` → `src/test/java/<base package path>/architecture/rules/<File>.java`
-- Kotlin: `rules/kotlin/<File>.kt.txt` → `src/test/kotlin/<base package path>/architecture/rules/<File>.kt` (drop `.txt`)
+- Java: `rules/java/<File>.java` → `src/test/java/<root package path>/architecture/rules/<File>.java`
+- Kotlin: `rules/kotlin/<File>.kt.txt` → `src/test/kotlin/<root package path>/architecture/rules/<File>.kt` (drop `.txt`)
 - detekt: merge `rules/detekt/<file>.yml` into the project's `detekt.yml` (create `config/detekt/detekt.yml` if none)
-  and adapt the path and patterns.
+  and replace the example root package `com.acme.shop` in its path and patterns.
 
-In every copied source file change only the `package` line to `<base package>.architecture.rules`. Keep the first
+In every copied source file change only the `package` line to `<root package>.architecture.rules`. Keep the first
 comment line: it identifies the source and lets step 7 find the copies later. Copy rule files byte for byte
 otherwise: rule texts are part of frozen baselines.
 
@@ -73,8 +77,8 @@ otherwise: rule texts are part of frozen baselines.
 
 1. Add the missing test dependencies and build configuration from `references/build-setup.md`. Use the versions
    given there unless the project already pins newer ones. Do not touch unrelated parts of the build.
-2. Generate `src/test/java/<base package path>/architecture/ArchitectureTest.java` from
-   `templates/ArchitectureTest.java` and/or `src/test/kotlin/<base package path>/architecture/KotlinArchitectureTest.kt`
+2. Generate `src/test/java/<root package path>/architecture/ArchitectureTest.java` from
+   `templates/ArchitectureTest.java` and/or `src/test/kotlin/<root package path>/architecture/KotlinArchitectureTest.kt`
    from `templates/KotlinArchitectureTest.kt.txt`. Replace the `{{…}}` placeholders, keep only the test methods whose
    `// [rule-id]` marker is selected, and remove imports and fields that are no longer used.
    Keep the test method names from the template unless the user asks otherwise: Konsist suppressions
@@ -88,8 +92,8 @@ Run only the new tests first (`./mvnw test -Dtest='ArchitectureTest,KotlinArchit
 `./gradlew test --tests '*ArchitectureTest'`; use `mvn`/`gradle` if there is no wrapper). Then:
 
 - **Compile errors**: fix them (usually a missing dependency or a wrong import); do not change rule logic.
-- **Rule failed because nothing matched** (`failed to check any classes`): a parameter is wrong (package or
-  suffix). Re-check it with the user.
+- **Rule failed because nothing matched** (`failed to check any classes`): a parameter is wrong (root package,
+  sub-package or suffix). Re-check it with the user.
 - **Real violations**: show them grouped by rule, with counts. For each rule, ask the user to choose:
   1. **fix the code** now (only if there are a few and the fix is obvious);
   2. **adjust the rule** if it does not match the intended architecture (e.g. a layer is named differently);

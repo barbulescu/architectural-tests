@@ -12,7 +12,7 @@ class DetektDomainImportsTest {
     private val fragment = File("src/main/resources/detekt/domain-imports.yml").absoluteFile
 
     @Test
-    fun `domain importing only the JDK, and web importing Spring, pass`(@TempDir tmp: Path) {
+    fun `domain importing only the JDK, web importing Spring, and code outside the root package pass`(@TempDir tmp: Path) {
         assertEquals(emptyList(), forbiddenImports("valid", tmp))
     }
 

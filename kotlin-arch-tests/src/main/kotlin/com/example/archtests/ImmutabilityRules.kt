@@ -17,13 +17,14 @@ object ImmutabilityRules {
 
     /**
      * No `var` and no mutable collection types (declared or inferred from a `mutableListOf()`-style initialiser)
-     * in properties of files in [packagePattern] (Konsist syntax, e.g. `"com.acme.domain.."`).
+     * in properties of files in `<rootPackage>.<subPackage>` and its sub-packages, e.g. `("com.acme.shop", "domain")`.
+     * Leave [subPackage] empty for the whole root package.
      * Covers top-level properties, constructor properties and class, object and interface bodies.
      *
      * Existing offenders can be marked with `@Suppress("konsist.<name of the calling test>")`.
      */
-    fun assertImmutable(scope: KoScope, packagePattern: String, testName: String = callingTestName()) {
-        val files = scope.files.withPackage(packagePattern)
+    fun assertImmutable(scope: KoScope, rootPackage: String, subPackage: String = "", testName: String = callingTestName()) {
+        val files = scope.files.withPackage(inside(rootPackage, subPackage))
         val properties = files.flatMap { file ->
             file.properties(includeNested = false) +
                 (file.classes(includeNested = true) + file.objects(includeNested = true) + file.interfaces(includeNested = true))
@@ -35,6 +36,9 @@ object ImmutabilityRules {
     private fun KoPropertyDeclaration.isMutableCollection(): Boolean =
         type?.text?.let { MUTABLE_TYPES.containsMatchIn(it) } == true ||
             value?.let { MUTABLE_FACTORIES.containsMatchIn(it) } == true
+
+    private fun inside(rootPackage: String, subPackage: String) =
+        if (subPackage.isEmpty()) "$rootPackage.." else "$rootPackage.$subPackage.."
 
     /** Konsist finds the test name at a fixed stack depth, which a helper function shifts; pass it on explicitly. */
     private fun callingTestName(): String = StackWalker.getInstance().walk { frames ->

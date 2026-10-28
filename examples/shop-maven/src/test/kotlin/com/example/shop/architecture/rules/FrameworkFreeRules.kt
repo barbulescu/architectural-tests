@@ -11,18 +11,23 @@ object FrameworkFreeRules {
     val COMMON_FRAMEWORKS = listOf("org.springframework.", "jakarta.", "javax.persistence.", "io.micronaut.", "io.quarkus.")
 
     /**
-     * No import in files of [packagePattern] (Konsist syntax, e.g. `"com.acme.domain.."`) starts with any of
-     * [forbiddenPrefixes]. Reported per import, with file and line.
+     * No import in files of `<rootPackage>.<subPackage>` and its sub-packages, e.g. `("com.acme.shop", "domain")`,
+     * starts with any of [forbiddenPrefixes]. Leave [subPackage] empty for the whole root package.
+     * Reported per import, with file and line.
      */
     fun assertNoImports(
         scope: KoScope,
-        packagePattern: String,
+        rootPackage: String,
+        subPackage: String = "",
         forbiddenPrefixes: List<String> = COMMON_FRAMEWORKS,
         testName: String = callingTestName(),
     ) {
-        scope.files.withPackage(packagePattern).flatMap { it.imports }
+        scope.files.withPackage(inside(rootPackage, subPackage)).flatMap { it.imports }
             .assertFalse(testName = testName) { import -> forbiddenPrefixes.any { import.name.startsWith(it) } }
     }
+
+    private fun inside(rootPackage: String, subPackage: String) =
+        if (subPackage.isEmpty()) "$rootPackage.." else "$rootPackage.$subPackage.."
 
     /** Konsist finds the test name at a fixed stack depth, which a helper function shifts; pass it on explicitly. */
     private fun callingTestName(): String = StackWalker.getInstance().walk { frames ->

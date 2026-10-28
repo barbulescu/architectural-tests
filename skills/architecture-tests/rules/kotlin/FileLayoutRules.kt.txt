@@ -2,13 +2,17 @@
 package com.example.archtests
 
 import com.lemonappdev.konsist.api.container.KoScope
+import com.lemonappdev.konsist.api.ext.list.withPackage
 import com.lemonappdev.konsist.api.verify.assertTrue
 
-/** Kotlin coding conventions: a file that contains a single class, interface or object is named after it. */
+/**
+ * Kotlin coding conventions: a file that contains a single class, interface or object is named after it.
+ * Only files in the root package and its sub-packages are checked.
+ */
 object FileLayoutRules {
 
-    fun assertSingleDeclarationFilesAreNamedAfterIt(scope: KoScope, testName: String = callingTestName()) {
-        scope.files
+    fun assertSingleDeclarationFilesAreNamedAfterIt(scope: KoScope, rootPackage: String, testName: String = callingTestName()) {
+        scope.files.withPackage("$rootPackage..")
             .filter { it.topLevelTypeNames().size == 1 }
             .assertTrue(testName = testName) { it.name == it.topLevelTypeNames().single() }
     }

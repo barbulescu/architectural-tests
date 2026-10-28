@@ -31,6 +31,9 @@ copies with the current catalog.
 
 ## Working on the catalog
 
+Every rule takes a root package and checks only that package and its sub-packages; other package parameters are
+relative to it (`"web"` is `<root>.web..`). Each rule's tests include fixtures outside the root that must be ignored.
+
 `./gradlew build` runs every rule against its fixtures (JDK 21+). After changing a rule, run
 `./gradlew bundleSkill` to refresh the skill's copy in `skills/architecture-tests/rules/`; CI fails if it is stale.
 The examples are standalone projects: `cd examples/shop-maven && ./mvnw test`, or `cd examples/shop-gradle && ./gradlew test`.

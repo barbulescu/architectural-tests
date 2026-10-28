@@ -7,6 +7,11 @@ github.com/barbulescu/architectural-tests against passing and failing fixtures.
 **Konsist** reads Kotlin source: use it for Kotlin-only concepts (`val`/`var`, imports, file layout).
 **detekt** is static analysis on Kotlin source: its fragments give feedback in the IDE and before the tests run.
 
+**Every rule takes a root package** (e.g. `com.acme.shop`) and checks only that package and its sub-packages.
+All other package parameters are **relative to the root**: `"web"` means `com.acme.shop.web` and everything below
+it, `"domain.model"` means `com.acme.shop.domain.model..`, and `""` means the root package itself. Code outside
+the root (generated code, a vendored library, another module's packages on the classpath) is never reported.
+
 ## Overview
 
 | Id | Tool | File | Catches | Recommend when |
@@ -28,23 +33,24 @@ github.com/barbulescu/architectural-tests against passing and failing fixtures.
 ### `layers`
 
 ```java
-LayeredArchitectureRules.webApplicationDomainInfrastructure("..web..", "..application..", "..domain..", "..infrastructure..")
+LayeredArchitectureRules.webApplicationDomainInfrastructure("com.acme.shop", "web", "application", "domain", "infrastructure")
 ```
 
 Web may use application and domain; application may use domain; infrastructure implements domain ports; nothing
 uses web or infrastructure. A class outside every layer (the main class, a Spring `@Configuration` in the base
 package) is the composition root and may use everything. For a different layering, start from
-`LayeredArchitectureRules.layers()` and add `.layer(...)`/`.whereLayer(...)` calls in the test.
-Parameters: the four package patterns. The rule text (with `because`) is stable: frozen baselines depend on it.
+`LayeredArchitectureRules.layers()` and add `.layer(...).definedBy("com.acme.shop.x..")`/`.whereLayer(...)` calls
+in the test; layers defined below the root package limit the rule to it.
+Parameters: the root package and the four layer sub-packages. The rule text (with `because`) is stable: frozen baselines depend on it.
 
 ### `hexagonal`
 
 ```java
-HexagonalArchitectureRules.hexagonal("..domain.model..", "..domain.service..", "..application..",
-        Map.of("rest", "..adapter.rest..", "persistence", "..adapter.persistence.."))
+HexagonalArchitectureRules.hexagonal("com.acme.shop", "domain.model", "domain.service", "application",
+        Map.of("rest", "adapter.rest", "persistence", "adapter.persistence"))
 ```
 
-Parameters: domain model, domain service and application packages; one entry per adapter. Empty layers are allowed.
+Parameters: the root package; domain model, domain service and application sub-packages; one entry per adapter. Empty layers are allowed.
 Do not select together with `layers` for the same packages.
 
 ### `cycles`
@@ -53,7 +59,7 @@ Do not select together with `layers` for the same packages.
 CycleRules.noCyclesBetweenTopLevelPackages("com.acme.shop")
 ```
 
-Parameter: the base package. Each direct sub-package (with everything below it) is a slice.
+Parameter: the root package. Each direct sub-package (with everything below it) is a slice.
 
 ### `coding`
 
@@ -65,20 +71,21 @@ Parameter: the base package. Each direct sub-package (with everything below it) 
 | `noJodaTime()` | only if Joda-Time is (or was) a dependency |
 | `noFieldInjection()` | when a DI framework (Spring, Jakarta, Micronaut) is used |
 
-One test method per selected method.
+Each method takes the root package, e.g. `CodingRules.noStandardStreams("com.acme.shop")`. One test method per
+selected method.
 
 ### `naming`
 
 ```java
-NamingRules.classesWithSuffixResideIn("Controller", "..web..")
+NamingRules.classesWithSuffixResideIn("com.acme.shop", "Controller", "web")
 ```
 
-Parameters: suffix and package. One test method per convention. Fails when no class has the suffix (catches typos).
+Parameters: root package, suffix and sub-package. One test method per convention. Fails when no class has the suffix (catches typos).
 
 ### `test-presence`
 
 ```java
-TestPresenceRules.classesHaveATestClass("..application..", "UseCase", PRODUCTION_AND_TESTS)
+TestPresenceRules.classesHaveATestClass("com.acme.shop", "application", "UseCase", PRODUCTION_AND_TESTS)
 ```
 
 Checks that `FooUseCase` has a class named `FooUseCaseTest` (any package), not what that test does.
@@ -88,8 +95,8 @@ Fails when nothing matches (catches a wrong package or suffix).
 ### `spring`
 
 ```java
-SpringRules.controllersDoNotAccessRepositories()
-SpringRules.transactionalOnlyIn("..service..")
+SpringRules.controllersDoNotAccessRepositories("com.acme.shop")
+SpringRules.transactionalOnlyIn("com.acme.shop", "service")
 ```
 
 Annotations are matched by name; no Spring dependency is needed to compile. Passes when nothing matches.
@@ -98,7 +105,7 @@ For field injection use `coding`'s `noFieldInjection()`.
 ### `kotlin-immutability`
 
 ```kotlin
-ImmutabilityRules.assertImmutable(production, "com.acme.shop.domain..")
+ImmutabilityRules.assertImmutable(production, "com.acme.shop", "domain")
 ```
 
 No `var`, no `Mutable*`/`ArrayList`/`HashMap`-style types, no `mutableListOf()`-style initialisers, in top-level,
@@ -108,8 +115,8 @@ Existing offenders: `@Suppress("konsist.<test method name>")`.
 ### `kotlin-framework-free`
 
 ```kotlin
-FrameworkFreeRules.assertNoImports(production, "com.acme.shop.domain..")                   // common frameworks
-FrameworkFreeRules.assertNoImports(production, "com.acme.shop.domain..", listOf("org.springframework."))
+FrameworkFreeRules.assertNoImports(production, "com.acme.shop", "domain")                   // common frameworks
+FrameworkFreeRules.assertNoImports(production, "com.acme.shop", "domain", listOf("org.springframework."))
 ```
 
 Reported per import with file and line.
@@ -117,14 +124,16 @@ Reported per import with file and line.
 ### `kotlin-file-layout`
 
 ```kotlin
-FileLayoutRules.assertSingleDeclarationFilesAreNamedAfterIt(production)
+FileLayoutRules.assertSingleDeclarationFilesAreNamedAfterIt(production, "com.acme.shop")
 ```
 
 Kotlin coding convention. Files with several top-level classes are ignored.
 
 ### `detekt-domain-imports`
 
-A `ForbiddenImport` configuration limited to `**/domain/**`. Merge into `detekt.yml` (see `build-setup.md`) and adapt
-the path and patterns. detekt has one `ForbiddenImport` configuration per project, so merge with an existing one.
+A `ForbiddenImport` configuration limited to the domain package below the root package. Merge into `detekt.yml`
+(see `build-setup.md`) and replace the example root `com.acme.shop` in both places: as a directory path in
+`includes` (detekt matches file paths; Kotlin projects may omit the root package from their directories, so use the
+real source path) and as a package in `forbiddenPatterns`. detekt has one `ForbiddenImport` configuration per project, so merge with an existing one.
 Gradle only: detekt has no official Maven plugin. Overlaps with `layers` and `kotlin-framework-free` on purpose:
 detekt reports in the IDE and pre-commit, the tests are the safety net in CI.

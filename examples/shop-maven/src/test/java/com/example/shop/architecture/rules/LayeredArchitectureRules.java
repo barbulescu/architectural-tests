@@ -18,14 +18,18 @@ public final class LayeredArchitectureRules {
     private LayeredArchitectureRules() {
     }
 
-    /** Package patterns use ArchUnit syntax, e.g. {@code "..web.."} or {@code "com.acme.shop.web.."}. */
+    /**
+     * Layer packages are relative to {@code rootPackage}: {@code ("com.acme.shop", "web", ...)} means
+     * {@code com.acme.shop.web} and its sub-packages. Only classes below {@code rootPackage} are checked.
+     */
     public static ArchRule webApplicationDomainInfrastructure(
-            String webPackage, String applicationPackage, String domainPackage, String infrastructurePackage) {
+            String rootPackage, String webPackage, String applicationPackage, String domainPackage,
+            String infrastructurePackage) {
         return layers()
-                .layer("Web").definedBy(webPackage)
-                .layer("Application").definedBy(applicationPackage)
-                .layer("Domain").definedBy(domainPackage)
-                .layer("Infrastructure").definedBy(infrastructurePackage)
+                .layer("Web").definedBy(inside(rootPackage, webPackage))
+                .layer("Application").definedBy(inside(rootPackage, applicationPackage))
+                .layer("Domain").definedBy(inside(rootPackage, domainPackage))
+                .layer("Infrastructure").definedBy(inside(rootPackage, infrastructurePackage))
 
                 .whereLayer("Web").mayNotBeAccessedByAnyLayer()
                 .whereLayer("Application").mayOnlyBeAccessedByLayers("Web")
@@ -35,10 +39,15 @@ public final class LayeredArchitectureRules {
     }
 
     /**
-     * Starting point for any other layering: add {@code .layer(...)} and {@code .whereLayer(...)} calls.
-     * Dependencies on classes outside every layer (the JDK, libraries, the composition root) are ignored.
+     * Starting point for any other layering: add {@code .layer(...).definedBy("com.acme.shop.x..")} and
+     * {@code .whereLayer(...)} calls. Dependencies on classes outside every layer (the JDK, libraries, the
+     * composition root) are ignored, so defining the layers below the root package limits the rule to it.
      */
     public static LayeredArchitecture layers() {
         return layeredArchitecture().consideringOnlyDependenciesInLayers();
+    }
+
+    private static String inside(String rootPackage, String subPackage) {
+        return subPackage.isEmpty() ? rootPackage + ".." : rootPackage + "." + subPackage + "..";
     }
 }

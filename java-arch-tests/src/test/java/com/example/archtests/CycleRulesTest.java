@@ -19,4 +19,9 @@ class CycleRulesTest {
         assertViolates(CycleRules.noCyclesBetweenTopLevelPackages(pkg("cycles", "invalid")), classes("cycles", "invalid"),
                 "Cycle detected: Slice a -> \n                Slice b -> \n                Slice a");
     }
+
+    @Test
+    void cycles_outside_the_root_package_are_ignored() {
+        assertPasses(CycleRules.noCyclesBetweenTopLevelPackages(pkg("cycles", "valid")), classes("cycles"));
+    }
 }

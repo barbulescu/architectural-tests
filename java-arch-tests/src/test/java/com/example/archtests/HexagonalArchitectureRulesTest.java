@@ -8,20 +8,27 @@ import java.util.Map;
 import static com.example.archtests.Fixtures.assertPasses;
 import static com.example.archtests.Fixtures.assertViolates;
 import static com.example.archtests.Fixtures.classes;
+import static com.example.archtests.Fixtures.pkg;
 
 class HexagonalArchitectureRulesTest {
 
-    private static final ArchRule RULE = HexagonalArchitectureRules.hexagonal(
-            "..domain.model..", "..domain.service..", "..application..",
-            Map.of("rest", "..adapter.rest..", "persistence", "..adapter.persistence.."));
+    private static ArchRule rule(String rootPackage) {
+        return HexagonalArchitectureRules.hexagonal(rootPackage, "domain.model", "domain.service", "application",
+                Map.of("rest", "adapter.rest", "persistence", "adapter.persistence"));
+    }
 
     @Test
     void adapters_depending_inwards_pass() {
-        assertPasses(RULE, classes("hexagonal", "valid"));
+        assertPasses(rule(pkg("hexagonal", "valid")), classes("hexagonal", "valid"));
     }
 
     @Test
     void adapter_depending_on_another_adapter_fails() {
-        assertViolates(RULE, classes("hexagonal", "invalid"), "OrderTable.resource", "OrderResource");
+        assertViolates(rule(pkg("hexagonal", "invalid")), classes("hexagonal", "invalid"), "OrderTable.resource", "OrderResource");
+    }
+
+    @Test
+    void violations_outside_the_root_package_are_ignored() {
+        assertPasses(rule(pkg("hexagonal", "valid")), classes("hexagonal"));
     }
 }

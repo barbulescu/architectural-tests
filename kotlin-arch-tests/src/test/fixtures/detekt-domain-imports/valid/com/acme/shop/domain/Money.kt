@@ -1,4 +1,4 @@
-package com.acme.domain
+package com.acme.shop.domain
 
 import java.math.BigDecimal
 

@@ -1,8 +1,8 @@
-package {{BASE_PACKAGE}}.architecture
+package {{ROOT_PACKAGE}}.architecture
 
-import {{BASE_PACKAGE}}.architecture.rules.FileLayoutRules
-import {{BASE_PACKAGE}}.architecture.rules.FrameworkFreeRules
-import {{BASE_PACKAGE}}.architecture.rules.ImmutabilityRules
+import {{ROOT_PACKAGE}}.architecture.rules.FileLayoutRules
+import {{ROOT_PACKAGE}}.architecture.rules.FrameworkFreeRules
+import {{ROOT_PACKAGE}}.architecture.rules.ImmutabilityRules
 import com.lemonappdev.konsist.api.Konsist
 import org.junit.jupiter.api.Test
 
@@ -15,23 +15,25 @@ import org.junit.jupiter.api.Test
  */
 class KotlinArchitectureTest {
 
+    /** Every rule checks this package and its sub-packages only; the other packages below are relative to it. */
+    private val rootPackage = "{{ROOT_PACKAGE}}"
     private val production = Konsist.scopeFromProduction()
 
     // [kotlin-immutability]
     @Test
     fun `domain objects are immutable`() {
-        ImmutabilityRules.assertImmutable(production, "{{DOMAIN_PACKAGE}}")
+        ImmutabilityRules.assertImmutable(production, rootPackage, "{{DOMAIN_PACKAGE}}")
     }
 
     // [kotlin-framework-free]
     @Test
     fun `domain does not know about frameworks`() {
-        FrameworkFreeRules.assertNoImports(production, "{{DOMAIN_PACKAGE}}")
+        FrameworkFreeRules.assertNoImports(production, rootPackage, "{{DOMAIN_PACKAGE}}")
     }
 
     // [kotlin-file-layout]
     @Test
     fun `files are named after their single class`() {
-        FileLayoutRules.assertSingleDeclarationFilesAreNamedAfterIt(production)
+        FileLayoutRules.assertSingleDeclarationFilesAreNamedAfterIt(production, rootPackage)
     }
 }
