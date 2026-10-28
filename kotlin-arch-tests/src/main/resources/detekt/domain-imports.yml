@@ -1,0 +1,10 @@
+# From github.com/barbulescu/architectural-tests, rule group "detekt-domain-imports". Merge into your detekt.yml.
+# Same idea as the ArchUnit layer rule, but at source level on every detekt run (IDE, pre-commit, CI):
+# files under a domain/ directory must not import frameworks or the outer layers.
+# Adjust the path and the patterns to your project. If your detekt.yml already configures ForbiddenImport,
+# merge the patterns: detekt has one ForbiddenImport configuration per project.
+style:
+  ForbiddenImport:
+    active: true
+    includes: ['**/domain/**']
+    forbiddenPatterns: '(org\.springframework|jakarta|javax\.persistence)\..*|.*\.(web|application|infrastructure)\..*'

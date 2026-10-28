@@ -24,12 +24,16 @@ com.example.shop
 
 | Rule | Tool | Why that tool |
 |---|---|---|
-| Layer dependencies (all code) | ArchUnit `LayerRulesTest` | Reads bytecode, so it covers Java **and** Kotlin |
-| No package cycles, no `System.out`, no JUL, controllers in `web` | ArchUnit `CodingRulesTest` | Ready-made rules in `GeneralCodingRules` |
-| Every use case has a test | ArchUnit `TestCoverageRulesTest` | A custom `ArchCondition`: a few lines of plain Java |
-| Kotlin domain properties are `val`, no framework imports | Konsist `DomainModelKonsistTest` | `val`/`var` and imports are source concepts |
+| Layer dependencies (all code) | ArchUnit `ArchitectureTest.layers_are_respected` | Reads bytecode, so it covers Java **and** Kotlin |
+| No package cycles, no `System.out`, no JUL, controllers in `web` | ArchUnit `ArchitectureTest` | Ready-made rules in `GeneralCodingRules` |
+| Every use case has a test | ArchUnit `ArchitectureTest.every_use_case_has_a_test` | A custom `ArchCondition`: a few lines of plain Java |
+| Kotlin domain properties are `val` and not mutable collections, no framework imports | Konsist `KotlinArchitectureTest` | `val`/`var` and imports are source concepts |
 
 ArchUnit is the main tool: it covers all of the code. Konsist is the add-on for the Kotlin part.
+
+The rules themselves are in `src/test/{java,kotlin}/com/example/shop/architecture/rules/`, copied from this repo's
+rule catalog by the [`architecture-tests` skill](../skills/architecture-tests/SKILL.md). The two test classes only
+apply them to this project's packages.
 
 ## Adopting on an existing code base
 

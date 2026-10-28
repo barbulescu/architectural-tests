@@ -1,0 +1,37 @@
+package {{BASE_PACKAGE}}.architecture
+
+import {{BASE_PACKAGE}}.architecture.rules.FileLayoutRules
+import {{BASE_PACKAGE}}.architecture.rules.FrameworkFreeRules
+import {{BASE_PACKAGE}}.architecture.rules.ImmutabilityRules
+import com.lemonappdev.konsist.api.Konsist
+import org.junit.jupiter.api.Test
+
+/**
+ * Rules about how the Kotlin code is written, which only a source-level tool can check. Dependencies between
+ * packages, Java and Kotlin alike, are checked by the ArchUnit rules in ArchitectureTest.
+ *
+ * Existing offenders can be marked with @Suppress("konsist.<test method name>"), e.g.
+ * @Suppress("konsist.domain objects are immutable"). Rename a test and its suppressions stop matching.
+ */
+class KotlinArchitectureTest {
+
+    private val production = Konsist.scopeFromProduction()
+
+    // [kotlin-immutability]
+    @Test
+    fun `domain objects are immutable`() {
+        ImmutabilityRules.assertImmutable(production, "{{DOMAIN_PACKAGE}}")
+    }
+
+    // [kotlin-framework-free]
+    @Test
+    fun `domain does not know about frameworks`() {
+        FrameworkFreeRules.assertNoImports(production, "{{DOMAIN_PACKAGE}}")
+    }
+
+    // [kotlin-file-layout]
+    @Test
+    fun `files are named after their single class`() {
+        FileLayoutRules.assertSingleDeclarationFilesAreNamedAfterIt(production)
+    }
+}

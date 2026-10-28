@@ -20,7 +20,14 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v6
-      - run: ./gradlew build
+      - run: ./gradlew build bundleSkill
+      - name: Skill bundle is up to date
+        run: |
+          if [ -n "$(git status --porcelain -- skills/)" ]; then
+            git status --short -- skills/
+            echo "::error::skills/architecture-tests/rules/ is stale: run ./gradlew bundleSkill and commit the result"
+            exit 1
+          fi
 
   example-maven:
     name: Example shop-maven
